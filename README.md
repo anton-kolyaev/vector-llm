@@ -45,3 +45,10 @@ docker exec -it ollama_container ollama run llama3
 (Press `Ctrl+D` to exit the chat after it loads).
 
 Once pulled, you can select **Ollama** as your LLM provider in AnythingLLM settings and use `http://ollama:11434` as the base URL.
+
+## Tips
+
+- **Use Agent Rules**: Define clear rules for your AI agent to improve performance. You can find useful examples at [Cursor Directory](https://cursor.directory/rules).
+- **Manage Context Effectively**: Keep the agent's context focused. Start a fresh chat for new topics and disable RAG, rules, or MCP tools if they are not relevant to the current task.
+- **Select Appropriate Models**: Browse the [Ollama Library](https://ollama.com/library) for models. Model size matters for local performance; choose "non-cloud" sized models (e.g., 1B-8B parameters) that fit your hardware capabilities if you want to run everything locally.
+

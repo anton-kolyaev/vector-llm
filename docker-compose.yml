@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   anythingllm:
     image: mintplexlabs/anythingllm
@@ -11,8 +9,13 @@ services:
       - STORAGE_DIR=/app/server/storage
       - VECTOR_DB=${VECTOR_DB}
       - PGVECTOR_CONNECTION_STRING=${PGVECTOR_CONNECTION_STRING}
+      - LLM_PROVIDER=ollama
+      - OLLAMA_BASE_PATH=http://ollama:11434
+      - OLLAMA_MODEL_PREF=llama3
+      - EMBEDDING_PROVIDER=ollama
+      - OLLAMA_EMBEDDING_BASE_PATH=http://ollama:11434
       # If you want to use the same postgres DB for system tables (users, etc)
-      - DATABASE_URL=${PGVECTOR_CONNECTION_STRING}
+      # - DATABASE_URL=${PGVECTOR_CONNECTION_STRING}
     volumes:
       - ./storage:/app/server/storage
     networks:
@@ -78,6 +81,19 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
+
+
+  ollama-puller:
+    image: ollama/ollama:latest
+    container_name: ollama_puller
+    networks:
+      - llm-network
+    environment:
+      - OLLAMA_HOST=ollama:11434
+    entrypoint: /bin/sh
+    command: -c "echo 'Waiting for Ollama server...'; while ! ollama list > /dev/null 2>&1; do sleep 1; done; echo 'Ollama server ready. Pulling llama3...'; ollama pull llama3; echo 'Model pulled successfully';"
+    depends_on:
+      - ollama
 
 networks:
   llm-network:
