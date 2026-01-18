@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  anythingllm:
+    image: mintplexlabs/anythingllm
+    container_name: anythingllm_container
+    ports:
+      - "${ANYTHING_LLM_PORT}:3001"
+    environment:
+      - SERVER_PORT=3001
+      - STORAGE_DIR=/app/server/storage
+      - VECTOR_DB=${VECTOR_DB}
+      - PGVECTOR_CONNECTION_STRING=${PGVECTOR_CONNECTION_STRING}
+      # If you want to use the same postgres DB for system tables (users, etc)
+      - DATABASE_URL=${PGVECTOR_CONNECTION_STRING}
+    volumes:
+      - ./storage:/app/server/storage
+    networks:
+      - llm-network
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    restart: unless-stopped
+    # Depending on your user permissions you might need:
+    # user: "1000:1000"
+
+  postgres_db:
+    image: pgvector/pgvector:pg16
+    container_name: vector_db_container
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    networks:
+      - llm-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    volumes:
+      - ./pgadmin_data:/var/lib/pgadmin
+    networks:
+      - llm-network
+    depends_on:
+      - postgres_db
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama_container
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/root/.ollama
+    networks:
+      - llm-network
+    restart: unless-stopped
+    # GPU Support (Uncomment if you have an NVIDIA GPU and nvidia-container-toolkit installed)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+networks:
+  llm-network:
+    driver: bridge
