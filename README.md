@@ -25,6 +25,21 @@ This project provides a complete local LLM stack using Docker Compose, including
         - **Password**: `admin`
     - **Ollama API**: [http://localhost:11434](http://localhost:11434)
 
+## Alternative: Running with Local Ollama
+
+If you prefer to run Ollama natively on your host machine (outside of Docker) to better utilize hardware resources or simply because you already have it installed:
+
+1.  **Ensure Ollama is running**: Make sure Ollama is running on your host machine (usually at `http://localhost:11434`).
+2.  **Pull Desired Model**:
+    ```bash
+    ollama pull llama3
+    ```
+3.  **Start the stack with the local profile**:
+    ```bash
+    docker compose -f docker-compose.local-ollama.yml up -d
+    ```
+    This profile excludes the `ollama` container and configures `anythingllm` to connect to your host's Ollama instance.
+
 ## Configuration
 
 - **Environment Variables**: Check `.env` to configure ports, credentials, and database settings.
